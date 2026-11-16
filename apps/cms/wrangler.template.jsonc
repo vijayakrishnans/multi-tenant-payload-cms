@@ -1,0 +1,54 @@
+// Rendered to wrangler.jsonc by tooling/wire/render.mjs (BF6 deploy-time wiring).
+// Resource IDs are NEVER committed: @@wiring(<component>/<env>:<key>)@@ tokens are
+// resolved from the published wiring at deploy time (wire-live) or from the
+// committed wiring.fixture.json for offline dry-runs (wire-fixture).
+//
+// An OpenNext build on cloudflare-worker-turbo: `main` and `assets` are the
+// adapter's outputs, so the composition's `wrangler deploy` ships both.
+{
+  "name": "multi-tenant-payload-cms-cms",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-08-15",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "observability": { "enabled": true },
+  "vars": { "ENVIRONMENT": "local" },
+  "env": {
+    "dev": {
+      "vars": {
+        "ENVIRONMENT": "dev",
+        "MULTI_TENANT_PAYLOAD_CMS_API_PUBLIC_URL": "https://multi-tenant-payload-cms-api-edge-dev.vijayakrishnan12994.workers.dev"
+      }
+    },
+    "stage": {
+      "vars": {
+        "ENVIRONMENT": "stage",
+        "MULTI_TENANT_PAYLOAD_CMS_API_PUBLIC_URL": "https://multi-tenant-payload-cms-api-edge-stage.vijayakrishnan12994.workers.dev"
+      },
+      "hyperdrive": [
+        { "binding": "HYPERDRIVE_CMS", "id": "@@wiring(cloudflare-hyperdrive-cms/stage:hyperdrive_id)@@" }
+      ],
+      "r2_buckets": [
+        { "binding": "R2_MEDIA", "bucket_name": "@@wiring(cloudflare-r2-cms/stage:bucket_name)@@" }
+      ],
+      // Multi Tenant Payload Cms sign-in (multi-tenant-payload-cms-console design §2): sessions are checked
+      // with api-edge over this binding, never over the public internet.
+      "services": [{ "binding": "MULTI_TENANT_PAYLOAD_CMS_API", "service": "multi-tenant-payload-cms-api-edge-stage" }]
+    },
+    "prod": {
+      "vars": {
+        "ENVIRONMENT": "prod",
+        "MULTI_TENANT_PAYLOAD_CMS_API_PUBLIC_URL": "https://multi-tenant-payload-cms-api-edge-prod.vijayakrishnan12994.workers.dev"
+      },
+      "hyperdrive": [
+        { "binding": "HYPERDRIVE_CMS", "id": "@@wiring(cloudflare-hyperdrive-cms/prod:hyperdrive_id)@@" }
+      ],
+      "r2_buckets": [
+        { "binding": "R2_MEDIA", "bucket_name": "@@wiring(cloudflare-r2-cms/prod:bucket_name)@@" }
+      ],
+      // Multi Tenant Payload Cms sign-in (multi-tenant-payload-cms-console design §2): sessions are checked
+      // with api-edge over this binding, never over the public internet.
+      "services": [{ "binding": "MULTI_TENANT_PAYLOAD_CMS_API", "service": "multi-tenant-payload-cms-api-edge-prod" }]
+    }
+  }
+}
